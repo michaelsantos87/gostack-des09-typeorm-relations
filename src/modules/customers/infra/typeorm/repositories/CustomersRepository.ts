@@ -2,6 +2,7 @@ import { getRepository, Repository } from 'typeorm';
 
 import ICustomersRepository from '@modules/customers/repositories/ICustomersRepository';
 import ICreateCustomerDTO from '@modules/customers/dtos/ICreateCustomerDTO';
+import AppError from '@shared/errors/AppError';
 import Customer from '../entities/Customer';
 
 class CustomersRepository implements ICustomersRepository {
@@ -12,6 +13,12 @@ class CustomersRepository implements ICustomersRepository {
   }
 
   public async create({ name, email }: ICreateCustomerDTO): Promise<Customer> {
+    const checkUserExist = await this.findByEmail(email);
+
+    if (checkUserExist) {
+      throw new AppError('E-mail address already used in another user');
+    }
+
     const customer = this.ormRepository.create({
       name,
       email,
